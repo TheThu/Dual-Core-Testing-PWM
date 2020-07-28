@@ -81,25 +81,40 @@ void Led_init(void)
     HAL_GPIO_Init(GPIOJ, &GPIO_InitStruct);
 }
 
+// High level initialisations for Timer1
 
 void Timer1_init(void)
 {
+
+  /*
+    Timer is hanging on APB1 BUS with 64 MHz
+   */
+
+
   // Setting time base
   htimer1.Instance = TIM1;
+
+  // 64/8 = 8MHz -> Period = 8, Timer counter begin at 0,  subtract one to period
   htimer1.Init.Period = 7-1;
   htimer1.Init.Prescaler = 0;
 
-
+  // Initialize Timer1
   if(HAL_TIM_PWM_Init(&htimer1)!= HAL_OK)
   {
 	  Error_Handler();
   }
 
+  // PWM configurations
+
   TIM_OC_InitTypeDef tim1PWM_init;
+
+  // Clear garbage values
   memset(&tim1PWM_init,0,sizeof(tim1PWM_init));
   tim1PWM_init.OCMode = TIM_OCMODE_PWM1;
   tim1PWM_init.OCPolarity = TIM_OCPOLARITY_HIGH;
   tim1PWM_init.Pulse = htimer1.Init.Period * 0.9;
+
+  // Configure channel
   if(HAL_TIM_PWM_ConfigChannel(&htimer1, &tim1PWM_init, TIM_CHANNEL_1) != HAL_OK)
   {
 	Error_Handler();
@@ -107,25 +122,36 @@ void Timer1_init(void)
 }
 
 
+// High level initializations
+
 void Timer8_init(void)
 {
 
+	  /*
+	    Timer is hanging on APB1 BUS with 64 MHz
+	   */
+
 	  // Setting time base
 	  htimer8.Instance = TIM8;
+
+	  // 64/8 = 8MHz -> Period = 8, Timer counter begin at 0,  subtract one to period
 	  htimer8.Init.Period = 7-1;
 	  htimer8.Init.Prescaler = 0;
 
-
+	  // Initialize Timer8
 	  if(HAL_TIM_PWM_Init(&htimer8)!= HAL_OK)
 	  {
 		  Error_Handler();
 	  }
 
+	  // PWM configurations
 	  TIM_OC_InitTypeDef tim8PWM_init;
 	  memset(&tim8PWM_init,0,sizeof(tim8PWM_init));
 	  tim8PWM_init.OCMode = TIM_OCMODE_PWM1;
 	  tim8PWM_init.OCPolarity = TIM_OCPOLARITY_HIGH;
 	  tim8PWM_init.Pulse = htimer8.Init.Period * 0.5;
+
+	  // Configure channel
 	  if(HAL_TIM_PWM_ConfigChannel(&htimer8, &tim8PWM_init, TIM_CHANNEL_2) != HAL_OK)
 	  {
 		Error_Handler();
@@ -134,35 +160,42 @@ void Timer8_init(void)
 
 }
 
+// Low level initialization
+
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 {
-	GPIO_InitTypeDef tim1OC_ch_GPIOs;
-	__HAL_RCC_TIM1_CLK_ENABLE();
 
+	/*
+	  Enable Timer and GPIO Clks
+	 */
+	__HAL_RCC_TIM1_CLK_ENABLE();
 	__HAL_RCC_GPIOK_CLK_ENABLE();
+	__HAL_RCC_TIM8_CLK_ENABLE();
+	__HAL_RCC_GPIOJ_CLK_ENABLE();
+
+	GPIO_InitTypeDef tim1OC_ch_GPIOs;
+
+
+	/* Configure Timer channels
+	 */
+
 	tim1OC_ch_GPIOs.Pin = GPIO_PIN_1;
 	tim1OC_ch_GPIOs.Mode = GPIO_MODE_AF_PP;
 	tim1OC_ch_GPIOs.Pull = GPIO_NOPULL;
 	tim1OC_ch_GPIOs.Speed = GPIO_SPEED_FREQ_HIGH;
+	// AF1: Timer1 channel 1
 	tim1OC_ch_GPIOs.Alternate = GPIO_AF1_TIM1;
 	HAL_GPIO_Init(GPIOK, &tim1OC_ch_GPIOs);
-//	HAL_NVIC_SetPriority(TIM1_CC_IRQn, 15, 0);
-//	HAL_NVIC_EnableIRQ(TIM1_CC_IRQn);
-
 
 
 	GPIO_InitTypeDef tim8OC_ch_GPIOs;
-	__HAL_RCC_TIM8_CLK_ENABLE();
-	__HAL_RCC_GPIOJ_CLK_ENABLE();
 	tim8OC_ch_GPIOs.Pin = GPIO_PIN_10;
 	tim8OC_ch_GPIOs.Mode = GPIO_MODE_AF_PP;
 	tim8OC_ch_GPIOs.Pull = GPIO_NOPULL;
 	tim8OC_ch_GPIOs.Speed = GPIO_SPEED_FREQ_HIGH;
+	// AF3: Timer8 channel 2
 	tim8OC_ch_GPIOs.Alternate = GPIO_AF3_TIM8;
 	HAL_GPIO_Init(GPIOJ, &tim8OC_ch_GPIOs);
-//	HAL_NVIC_SetPriority(TIM1_CC_IRQn, 15, 0);
-//	HAL_NVIC_EnableIRQ(TIM1_CC_IRQn);
-
 
 }
 
@@ -232,21 +265,28 @@ Error_Handler();
   /* USER CODE BEGIN 2 */
   Led_init();
   /* USER CODE END 2 */
+
+  // Initialize Timers
   Timer1_init();
   Timer8_init();
+
+  // Start PWM
   HAL_TIM_PWM_Start(&htimer1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htimer8, TIM_CHANNEL_2);
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
+    /* Toggle Pin GPIOJ0 */
+
 	  HAL_GPIO_WritePin(GPIOJ, GPIO_PIN_0, GPIO_PIN_SET);
 	  HAL_Delay(500);
 	  HAL_GPIO_WritePin(GPIOJ, GPIO_PIN_0, GPIO_PIN_RESET);
 	  HAL_Delay(500);
-    /* USER CODE BEGIN 3 */
-	//  HAL_TIM_PWM_Start(&htimer1, TIM_CHANNEL_1);
+
+
+
+
   }
   /* USER CODE END 3 */
 }
