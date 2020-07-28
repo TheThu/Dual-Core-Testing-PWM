@@ -1,0 +1,9 @@
+main.c:73:6:Led_init	32	static
+main.c:85:6:Timer1_init	40	static
+main.c:110:6:Timer8_init	40	static
+main.c:137:6:HAL_TIM_PWM_MspInit	72	static
+main.c:177:5:main	16	static
+main.c:258:6:SystemClock_Config	312	static
+main.c:350:13:MX_USART1_UART_Init	8	static
+main.c:398:13:MX_GPIO_Init	40	static
+main.c:425:6:Error_Handler	4	static
