@@ -123,32 +123,6 @@ static void MX_TIM13_Init(void);
 static void MX_UART8_Init(void);
 void MX_USART1_UART_Init(void);
 static void MX_USB_OTG_HS_PCD_Init(void);
-//void Led_init();
-
-//void Led_init()
-//{
-//
-//	GPIO_InitTypeDef GPIO_InitStruct = {0};
-//    __HAL_RCC_GPIOJ_CLK_ENABLE();
-//
-//    /**ETH GPIO Configuration
-//    PG11     ------> ETH_TX_EN
-//    PG12     ------> ETH_TXD1
-//    PG13     ------> ETH_TXD0
-//    PC1     ------> ETH_MDC
-//    PA2     ------> ETH_MDIO
-//    PA1     ------> ETH_REF_CLK
-//    PA7     ------> ETH_CRS_DV
-//    PC4     ------> ETH_RXD0
-//    PC5     ------> ETH_RXD1
-//    */
-//    GPIO_InitStruct.Pin = GPIO_PIN_0;
-//    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//    GPIO_InitStruct.Pull = GPIO_NOPULL;
-//    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-//    HAL_GPIO_Init(GPIOJ, &GPIO_InitStruct);
-//
-//}
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -214,7 +188,6 @@ int main(void)
   MX_TIM13_Init();
   MX_UART8_Init();
   MX_USB_OTG_HS_PCD_Init();
-//  Led_init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -225,10 +198,7 @@ int main(void)
   {
 	 // asm("wfi");
     /* USER CODE END WHILE */
-//	  	  HAL_GPIO_WritePin(GPIOJ, GPIO_PIN_0, GPIO_PIN_SET);
-//	  	  HAL_Delay(100);
-//	  	  HAL_GPIO_WritePin(GPIOJ, GPIO_PIN_0, GPIO_PIN_RESET);
-//	  	  HAL_Delay(100);
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

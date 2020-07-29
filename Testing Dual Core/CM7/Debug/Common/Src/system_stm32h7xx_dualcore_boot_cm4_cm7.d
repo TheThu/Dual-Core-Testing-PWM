@@ -1,5 +1,5 @@
 Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o: \
- C:/Users/tran/STM32CubeIDE/workspace_1.3.0/Testing\ Dual\ Core/Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c \
+ U:/git/Dual-Core-Testing-PWM/Testing\ Dual\ Core/Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c \
  ../../Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h7xx.h \
  ../../Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h747xx.h \
  ../../Drivers/CMSIS/Include/core_cm7.h \

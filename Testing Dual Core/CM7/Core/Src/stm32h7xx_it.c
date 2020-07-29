@@ -54,11 +54,7 @@ extern TIM_HandleTypeDef htimer1;
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
-void TIM1_CC_IRQHandler()
-{
 
-HAL_TIM_IRQHandler(&htimer1);
-}
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */

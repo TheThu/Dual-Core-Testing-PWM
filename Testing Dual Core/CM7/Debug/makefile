@@ -41,8 +41,8 @@ Testing\ Dual\ Core_CM7.bin \
 all: Testing\ Dual\ Core_CM7.elf secondary-outputs
 
 # Tool invocations
-Testing\ Dual\ Core_CM7.elf: $(OBJS) $(USER_OBJS) C:\Users\tran\STM32CubeIDE\workspace_1.3.0\Testing\ Dual\ Core\CM7\STM32H747XIHX_FLASH.ld
-	arm-none-eabi-gcc -o "Testing Dual Core_CM7.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\tran\STM32CubeIDE\workspace_1.3.0\Testing Dual Core\CM7\STM32H747XIHX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Testing Dual Core_CM7.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Testing\ Dual\ Core_CM7.elf: $(OBJS) $(USER_OBJS) U:\git\Dual-Core-Testing-PWM\Testing\ Dual\ Core\CM7\STM32H747XIHX_FLASH.ld
+	arm-none-eabi-gcc -o "Testing Dual Core_CM7.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"U:\git\Dual-Core-Testing-PWM\Testing Dual Core\CM7\STM32H747XIHX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Testing Dual Core_CM7.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
