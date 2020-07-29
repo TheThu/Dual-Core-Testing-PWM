@@ -22,6 +22,7 @@
 #include "main.h"
 #include "string.h"
 #include "stdint.h"
+#include "stdio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -64,6 +65,9 @@ static void MX_I2C4_Init(void);
 void Led_init(void);
 void Timer1_init(void);
 void Timer2_init(void);
+
+static const uint8_t TMP275_ADDR = 0x48 << 1 ; // Use 8 bit adress;
+static const uint8_t REG_TEMP = 0x00;
 
 /* USER CODE END PFP */
 
@@ -212,6 +216,14 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
+// Return value HAL Status if transmission oder reception is successful
+
+  HAL_StatusTypeDef ret;
+
+// Value storage
+  int16_t val;
+  float temp_c;
+
   /* USER CODE END 1 */
   /* USER CODE BEGIN Boot_Mode_Sequence_0 */
     int32_t timeout; 
@@ -265,6 +277,8 @@ Error_Handler();
   MX_I2C4_Init();
   /* USER CODE BEGIN 2 */
   Led_init();
+
+  // Declare Buffer
   uint8_t buf[10];
   /* USER CODE END 2 */
 
@@ -273,8 +287,63 @@ Error_Handler();
   while (1)
   {
     /* USER CODE END WHILE */
-	  strcpy((char*)buf, "Hello!\r \n");
+
+	  // Temperature Register address
+	  buf[0] = REG_TEMP;
+
+	  ret = HAL_I2C_Master_Transmit(&hi2c4, TMP275_ADDR, buf, 1, HAL_MAX_DELAY);
+
+	  // Check if transmission is successful
+	  if(ret!=HAL_OK)
+	  {
+		  strcpy((char*)buf, "Error Tx\r \n");
+	  }
+	  else
+	  {
+
+		  // data is 2 Bytes long
+		  ret = HAL_I2C_Master_Receive(&hi2c4, TMP275_ADDR, buf, 2, HAL_MAX_DELAY);
+
+		  // Check if reception is successful
+		  if(ret!= HAL_OK )
+		  {
+			  // Copy String in buffer
+			  strcpy((char*)buf, "Error Rx\r \n");
+		  }
+		  else
+		  {
+
+			 // Append buffer to 2 Bytes
+			 val = ( (uint16_t)buf[0] << 4 ) | (buf[1] >> 4);
+
+			 /*
+			  Convert to 2's complement
+
+			  Check if value > 0111 1111 1111
+
+			  */
+			 if(val > 0x7FF)
+			 {
+				 //  Masking ,  value = value | 1111 0000 0000
+				 val |= 0xF000;
+			 }
+
+
+			 // Conversion according to datasheet, temperature sensor TMP275±0.5°C
+			 temp_c = val*0.0625;
+
+			 // Convert temperature to decimal format
+			 temp_c *= 100;
+			 sprintf((char*)buf,"%u.%02u C \r\n", ((unsigned int)temp_c / 100), ((unsigned int)temp_c % 100));
+
+		  }
+
+	  }
+
+
+	  // Send converted temperature value to serial terminal
 	  HAL_UART_Transmit(&huart1,buf,strlen((char*)buf),HAL_MAX_DELAY);
+	  // Wait 500ms
 	  HAL_Delay(500);
     /* USER CODE BEGIN 3 */
   }
