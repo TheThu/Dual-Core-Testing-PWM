@@ -51,6 +51,7 @@ TIM_HandleTypeDef htimer8;
 I2C_HandleTypeDef hi2c4;
 
 UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart8;
 
 /* USER CODE BEGIN PV */
 
@@ -60,6 +61,7 @@ UART_HandleTypeDef huart1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
+static void UART8_Init(void);
 static void MX_I2C4_Init(void);
 /* USER CODE BEGIN PFP */
 void Led_init(void);
@@ -68,6 +70,9 @@ void Timer2_init(void);
 
 static const uint8_t TMP275_ADDR = 0x48 << 1 ; // Use 8 bit adress;
 static const uint8_t REG_TEMP = 0x00;
+static const uint8_t Controlbyte = 0x50 << 1;
+static const uint8_t Commandbyte = 0x00;
+static const uint8_t Databyte = 255;
 
 /* USER CODE END PFP */
 
@@ -274,78 +279,106 @@ Error_Handler();
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-  MX_I2C4_Init();
+//  MX_I2C4_Init();
   /* USER CODE BEGIN 2 */
   Led_init();
+  UART8_Init();
+   MX_I2C4_Init();
 
   // Declare Buffer
-  uint8_t buf[10];
+  uint8_t buf[100];
+  uint8_t buf1[2];
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
+//    /* USER CODE END WHILE */
+//
+//	  // Temperature Register address
+//	  buf[0] = REG_TEMP;
+//
+//	  ret = HAL_I2C_Master_Transmit(&hi2c4, TMP275_ADDR, buf, 1, HAL_MAX_DELAY);
+//
+//	  // Check if transmission is successful
+//	  if(ret!=HAL_OK)
+//	  {
+//		  strcpy((char*)buf, "Error Tx\r \n");
+//	  }
+//	  else
+//	  {
+//
+//		  // data is 2 Bytes long
+//		  ret = HAL_I2C_Master_Receive(&hi2c4, TMP275_ADDR, buf, 2, HAL_MAX_DELAY);
+//
+//		  // Check if reception is successful
+//		  if(ret!= HAL_OK )
+//		  {
+//			  // Copy String in buffer
+//			  strcpy((char*)buf, "Error Rx\r \n");
+//		  }
+//		  else
+//		  {
+//
+//			 // Append buffer to 2 Bytes
+//			 val = ( (uint16_t)buf[0] << 4 ) | (buf[1] >> 4);
+//
+//			 /*
+//			  Convert to 2's complement
+//
+//			  Check if value > 0111 1111 1111
+//
+//			  */
+//			 if(val > 0x7FF)
+//			 {
+//				 //  Masking ,  value = value | 1111 0000 0000
+//				 val |= 0xF000;
+//			 }
+//
+//
+//			 // Conversion according to datasheet, temperature sensor TMP275±0.5°C
+//			 temp_c = val*0.0625;
+//
+//			 // Convert temperature to decimal format
+//			 temp_c *= 100;
+//			 sprintf((char*)buf,"%u.%02u C \r\n", ((unsigned int)temp_c / 100), ((unsigned int)temp_c % 100));
+//
+//		  }
+//
+//	  }
+//
+//
+////	  Send converted temperature value to serial terminal
+//	  HAL_UART_Transmit(&huart1,buf,strlen((char*)buf),HAL_MAX_DELAY);
+//
+//	  // Wait 500ms
+//	  HAL_Delay(500);
 
-	  // Temperature Register address
-	  buf[0] = REG_TEMP;
-
-	  ret = HAL_I2C_Master_Transmit(&hi2c4, TMP275_ADDR, buf, 1, HAL_MAX_DELAY);
-
-	  // Check if transmission is successful
-	  if(ret!=HAL_OK)
-	  {
-		  strcpy((char*)buf, "Error Tx\r \n");
-	  }
-	  else
-	  {
-
-		  // data is 2 Bytes long
-		  ret = HAL_I2C_Master_Receive(&hi2c4, TMP275_ADDR, buf, 2, HAL_MAX_DELAY);
-
-		  // Check if reception is successful
-		  if(ret!= HAL_OK )
-		  {
-			  // Copy String in buffer
-			  strcpy((char*)buf, "Error Rx\r \n");
-		  }
-		  else
-		  {
-
-			 // Append buffer to 2 Bytes
-			 val = ( (uint16_t)buf[0] << 4 ) | (buf[1] >> 4);
-
-			 /*
-			  Convert to 2's complement
-
-			  Check if value > 0111 1111 1111
-
-			  */
-			 if(val > 0x7FF)
-			 {
-				 //  Masking ,  value = value | 1111 0000 0000
-				 val |= 0xF000;
-			 }
+	  buf1[0] = Commandbyte;
+	  buf1[1] = Databyte;
 
 
-			 // Conversion according to datasheet, temperature sensor TMP275±0.5°C
-			 temp_c = val*0.0625;
+	  ret = HAL_I2C_Master_Transmit(&hi2c4, Controlbyte, buf1, 2, HAL_MAX_DELAY);
 
-			 // Convert temperature to decimal format
-			 temp_c *= 100;
-			 sprintf((char*)buf,"%u.%02u C \r\n", ((unsigned int)temp_c / 100), ((unsigned int)temp_c % 100));
-
-		  }
-
-	  }
+	  	  if(ret!=HAL_OK)
+	  	  {
+	  		  strcpy((char*)buf, "Error Tx\r \n");
+	  	  }
 
 
-	  // Send converted temperature value to serial terminal
-	  HAL_UART_Transmit(&huart1,buf,strlen((char*)buf),HAL_MAX_DELAY);
-	  // Wait 500ms
-	  HAL_Delay(500);
+
     /* USER CODE BEGIN 3 */
+
+
+
+
+	  /*
+	   *
+	   *
+
+	   */
+
   }
   /* USER CODE END 3 */
 }
@@ -528,6 +561,51 @@ static void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   if (HAL_UARTEx_DisableFifoMode(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
+}
+
+
+
+static void UART8_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart8.Instance = UART8;
+  huart8.Init.BaudRate = 115200;
+  huart8.Init.WordLength = UART_WORDLENGTH_8B;
+  huart8.Init.StopBits = UART_STOPBITS_1;
+  huart8.Init.Parity = UART_PARITY_NONE;
+  huart8.Init.Mode = UART_MODE_TX_RX;
+  huart8.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart8.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart8.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart8.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart8.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart8, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart8, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart8) != HAL_OK)
   {
     Error_Handler();
   }
