@@ -28,6 +28,33 @@
 /* USER CODE BEGIN Includes */
 TIM_HandleTypeDef htimer1;
 TIM_HandleTypeDef htimer8;
+
+// Resistors at the voltage divider of the adjustable LDO in Ohms
+float R2 = 12e3;
+float R1 = 680;
+
+// Maximum resistance value of the Poti
+float Rmax = 5e3;
+
+// Digital Poti value between the Wiper Terminal P0W and P0B, Poti_WTOPOB = Rmax/255 * databyte + 75 Ohm
+float Poti_WTOPOB = 0;
+
+// Buffer array to store I2C Bytes of the digital poti
+uint8_t buf1[100];
+uint8_t buf[100];
+
+// Slave adress if hardware pins A0, A1 and A2 is clamped to ground
+static const uint8_t Controlbyte = 0x50;
+
+// Write Command for Wiper0 of the digital poti
+static const uint8_t Commandbyte = 0x00;
+
+// Databyte of the poti 0 .... 255,
+static const uint8_t Databyte = 100;
+
+
+
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,6 +75,7 @@ TIM_HandleTypeDef htimer8;
 
 /* Private variables ---------------------------------------------------------*/
 
+// I2C Handle
 I2C_HandleTypeDef hi2c4;
 
 UART_HandleTypeDef huart1;
@@ -68,11 +96,8 @@ void Led_init(void);
 void Timer1_init(void);
 void Timer2_init(void);
 
-static const uint8_t TMP275_ADDR = 0x48 << 1 ; // Use 8 bit adress;
-static const uint8_t REG_TEMP = 0x00;
-static const uint8_t Controlbyte = 0x50 << 1;
-static const uint8_t Commandbyte = 0x00;
-static const uint8_t Databyte = 255;
+
+
 
 /* USER CODE END PFP */
 
@@ -225,9 +250,7 @@ int main(void)
 
   HAL_StatusTypeDef ret;
 
-// Value storage
-  int16_t val;
-  float temp_c;
+
 
   /* USER CODE END 1 */
   /* USER CODE BEGIN Boot_Mode_Sequence_0 */
@@ -279,85 +302,24 @@ Error_Handler();
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-//  MX_I2C4_Init();
+
   /* USER CODE BEGIN 2 */
   Led_init();
   UART8_Init();
-   MX_I2C4_Init();
+  MX_I2C4_Init();
 
-  // Declare Buffer
-  uint8_t buf[100];
-  uint8_t buf1[2];
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//    /* USER CODE END WHILE */
-//
-//	  // Temperature Register address
-//	  buf[0] = REG_TEMP;
-//
-//	  ret = HAL_I2C_Master_Transmit(&hi2c4, TMP275_ADDR, buf, 1, HAL_MAX_DELAY);
-//
-//	  // Check if transmission is successful
-//	  if(ret!=HAL_OK)
-//	  {
-//		  strcpy((char*)buf, "Error Tx\r \n");
-//	  }
-//	  else
-//	  {
-//
-//		  // data is 2 Bytes long
-//		  ret = HAL_I2C_Master_Receive(&hi2c4, TMP275_ADDR, buf, 2, HAL_MAX_DELAY);
-//
-//		  // Check if reception is successful
-//		  if(ret!= HAL_OK )
-//		  {
-//			  // Copy String in buffer
-//			  strcpy((char*)buf, "Error Rx\r \n");
-//		  }
-//		  else
-//		  {
-//
-//			 // Append buffer to 2 Bytes
-//			 val = ( (uint16_t)buf[0] << 4 ) | (buf[1] >> 4);
-//
-//			 /*
-//			  Convert to 2's complement
-//
-//			  Check if value > 0111 1111 1111
-//
-//			  */
-//			 if(val > 0x7FF)
-//			 {
-//				 //  Masking ,  value = value | 1111 0000 0000
-//				 val |= 0xF000;
-//			 }
-//
-//
-//			 // Conversion according to datasheet, temperature sensor TMP275±0.5°C
-//			 temp_c = val*0.0625;
-//
-//			 // Convert temperature to decimal format
-//			 temp_c *= 100;
-//			 sprintf((char*)buf,"%u.%02u C \r\n", ((unsigned int)temp_c / 100), ((unsigned int)temp_c % 100));
-//
-//		  }
-//
-//	  }
-//
-//
-////	  Send converted temperature value to serial terminal
-//	  HAL_UART_Transmit(&huart1,buf,strlen((char*)buf),HAL_MAX_DELAY);
-//
-//	  // Wait 500ms
-//	  HAL_Delay(500);
+
 
 	  buf1[0] = Commandbyte;
 	  buf1[1] = Databyte;
-
 
 	  ret = HAL_I2C_Master_Transmit(&hi2c4, Controlbyte, buf1, 2, HAL_MAX_DELAY);
 
@@ -366,7 +328,15 @@ Error_Handler();
 	  		  strcpy((char*)buf, "Error Tx\r \n");
 	  	  }
 
+	  				 /* Conversion according to datasheet, temperature sensor TMP275±0.5°C */
+	  				 Poti_WTOPOB = 5e3/255 * Databyte + 75;
 
+	  				 // Convert temperature to decimal format
+	  				 Poti_WTOPOB *= 100;
+
+
+	  				 sprintf((char*)buf,"%u.%02u C \r\n", ((unsigned int)Poti_WTOPOB / 100), ((unsigned int)Poti_WTOPOB % 100));
+	  				 HAL_UART_Transmit(&huart1,buf,strlen((char*)buf),HAL_MAX_DELAY);
 
     /* USER CODE BEGIN 3 */
 
