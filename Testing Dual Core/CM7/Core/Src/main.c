@@ -29,18 +29,29 @@
 TIM_HandleTypeDef htimer1;
 TIM_HandleTypeDef htimer8;
 
-// Resistors at the voltage divider of the adjustable LDO in Ohms
+// External Resistors at the voltage divider of the adjustable LDO in Ohms
 float R2 = 12e3;
 float R1 = 680;
 
-// Maximum resistance value of the Poti
+// Internal Wiper Resistance in Ohms
+
+float RW = 12e3;
+
+
+
+// Maximum resistance value of the Poti in Ohms
 float Rmax = 5e3;
 
-// Digital Poti value between the Wiper Terminal P0W and P0B, Poti_WTOPOB = Rmax/255 * databyte + 75 Ohm
+// Digital Poti value between the Wiper Terminal P0W and P0B, Poti_WTOPOB = Rmax/256 * databyte + 75 Ohm
 float Poti_WTOPOB = 0;
+
+// Maximum Resoltion 2^8
+float resolution = 256;
 
 // Buffer array to store I2C Bytes of the digital poti
 uint8_t buf1[100];
+
+// Buffer to store Uart Messages
 uint8_t buf[100];
 
 // Slave adress if hardware pins A0, A1 and A2 is clamped to ground
@@ -51,6 +62,11 @@ static const uint8_t Commandbyte = 0x00;
 
 // Databyte of the poti 0 .... 255,
 static const uint8_t Databyte = 100;
+
+// Databyte of the poti 0 .... 255,
+
+
+
 
 
 
@@ -306,7 +322,14 @@ Error_Handler();
   /* USER CODE BEGIN 2 */
   Led_init();
   UART8_Init();
+
+  /* Initializes I2C4 parameters
+     - the init function jumps into HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c) in stm32h7xx_hal_msp.c and
+       configures GPIO for I2C
+  */
   MX_I2C4_Init();
+
+  // In the Init function GPIO jumps to the MS
 
 
 
@@ -323,19 +346,22 @@ Error_Handler();
 
 	  ret = HAL_I2C_Master_Transmit(&hi2c4, Controlbyte, buf1, 2, HAL_MAX_DELAY);
 
+// Returns true if transmission successful
 	  	  if(ret!=HAL_OK)
 	  	  {
 	  		  strcpy((char*)buf, "Error Tx\r \n");
 	  	  }
 
-	  				 /* Conversion according to datasheet, temperature sensor TMP275±0.5°C */
-	  				 Poti_WTOPOB = 5e3/255 * Databyte + 75;
+	  				 /* Conversion according to datasheet */
+	  				 Poti_WTOPOB = Rmax/resolution * Databyte + RW;
 
 	  				 // Convert temperature to decimal format
 	  				 Poti_WTOPOB *= 100;
 
 
-	  				 sprintf((char*)buf,"%u.%02u C \r\n", ((unsigned int)Poti_WTOPOB / 100), ((unsigned int)Poti_WTOPOB % 100));
+	  				 sprintf((char*)buf,"%u.%02u Ohm \r\n", ((unsigned int)Poti_WTOPOB / 100), ((unsigned int)Poti_WTOPOB % 100));
+
+	  				 // Transmit calculated Poti Resistance to Serial Terminal COMPORT, Baudrate is 115200
 	  				 HAL_UART_Transmit(&huart1,buf,strlen((char*)buf),HAL_MAX_DELAY);
 
     /* USER CODE BEGIN 3 */
